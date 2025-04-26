@@ -26,6 +26,28 @@ def scrape_data():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@api_bp.route('/finance', methods=['POST'])
+def get_financial_data():
+    """
+    Rota para obter dados financeiros de empresas
+    Parâmetros:
+    - ticker: Código de negociação da empresa (ex: PETR4, VALE3)
+    - config: configurações específicas para o scraper (opcional)
+    """
+    data = request.get_json()
+    
+    if not data or 'ticker' not in data:
+        return jsonify({'error': 'Ticker não fornecido'}), 400
+    
+    ticker = data.get('ticker')
+    config = data.get('config', {})
+    
+    try:
+        result = scrapy_manager.run_financial_spider(ticker, config)
+        return jsonify({'status': 'success', 'data': result})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @api_bp.route('/jobs', methods=['GET'])
 def get_jobs():
     """Rota para obter status dos jobs de scraping"""

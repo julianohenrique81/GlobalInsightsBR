@@ -5,6 +5,7 @@ from datetime import datetime
 from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
 from app.crawler.spiders.generic_spider import GenericSpider
+from app.crawler.spiders.financial_spider import FinancialSpider
 
 class ScrapyManager:
     """
@@ -60,6 +61,65 @@ class ScrapyManager:
             return {
                 'job_id': job_id, 
                 'status': 'completed',
+                'results': self.get_results(job_id)
+            }
+        
+        except Exception as e:
+            # Em caso de erro
+            self.jobs[job_id]['status'] = 'failed'
+            self.jobs[job_id]['error'] = str(e)
+            self.jobs[job_id]['end_time'] = datetime.now().isoformat()
+            raise
+    
+    def run_financial_spider(self, ticker, config=None):
+        """
+        Inicia um spider específico para dados financeiros
+        
+        Args:
+            ticker (str): Ticker da empresa (ex: PETR4, VALE3)
+            config (dict): Configurações adicionais para o spider
+            
+        Returns:
+            dict: Dados do job e resultados obtidos
+        """
+        job_id = str(uuid.uuid4())
+        
+        # Criando o arquivo de saída para os resultados
+        output_file = os.path.join(self.results_dir, f"{job_id}.json")
+        
+        # Configuração do processo Scrapy
+        settings = get_project_settings()
+        settings.set('FEEDS', {output_file: {'format': 'json', 'encoding': 'utf8', 'indent': 4}})
+        
+        # URL específica para o InvestSite (apenas para registro)
+        target_url = f"https://www.investsite.com.br/atualizacoes_demonstracoes_financeiras.php?cod_negociacao={ticker.upper()}"
+        
+        # Informações do job
+        self.jobs[job_id] = {
+            'id': job_id,
+            'ticker': ticker.upper(),
+            'url': target_url,
+            'status': 'running',
+            'type': 'financial',
+            'start_time': datetime.now().isoformat(),
+            'end_time': None,
+            'output_file': output_file
+        }
+        
+        try:
+            process = CrawlerProcess(settings)
+            process.crawl(FinancialSpider, ticker=ticker, config=config or {})
+            process.start()  # Este método é bloqueante
+            
+            # Após concluir o processo
+            self.jobs[job_id]['status'] = 'completed'
+            self.jobs[job_id]['end_time'] = datetime.now().isoformat()
+            
+            # Retorna o resultado ao terminar
+            return {
+                'job_id': job_id, 
+                'status': 'completed',
+                'ticker': ticker.upper(),
                 'results': self.get_results(job_id)
             }
         
