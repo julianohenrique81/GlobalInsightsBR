@@ -22,6 +22,11 @@ def index():
     """Rota principal que renderiza a página inicial"""
     return render_template('index.html')
 
+@app.route('/config')
+def config():
+    """Rota para a página de configurações"""
+    return render_template('config.html')
+
 if __name__ == '__main__':
     debug = os.environ.get('DEBUG', 'False').lower() == 'true'
     port = int(os.environ.get('PORT', 5000))

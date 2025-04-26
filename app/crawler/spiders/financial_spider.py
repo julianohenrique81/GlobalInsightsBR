@@ -2,6 +2,7 @@ import scrapy
 import logging
 import yfinance as yf
 import pandas as pd
+from datetime import datetime, timedelta
 
 class FinancialSpider(scrapy.Spider):
     name = 'financial_spider'
@@ -18,8 +19,16 @@ class FinancialSpider(scrapy.Spider):
         else:
             self.start_urls = ["https://www.investsite.com.br/atualizacoes_demonstracoes_financeiras.php"]
         
+        # Configurações adicionais
         self.follow_links = self.config.get('follow_links', False)
         self.yfinance_data = self.config.get('yfinance_data', True)
+        self.period_years = self.config.get('period_years', 5)  # Período padrão: 5 anos
+        
+        # Validação do período
+        if self.period_years < 1:
+            self.period_years = 1
+        elif self.period_years > 15:
+            self.period_years = 15
     
     def parse(self, response):
         """
@@ -78,7 +87,7 @@ class FinancialSpider(scrapy.Spider):
                 yf_ticker = f"{self.ticker}.SA" if '.' not in self.ticker else self.ticker
                 stock_data = yf.Ticker(yf_ticker)
                 
-                # Obtem informações básicas
+                # Obtém informações básicas
                 info = stock_data.info
                 financials['yfinance'] = {
                     'nome': info.get('shortName', ''),
@@ -96,8 +105,10 @@ class FinancialSpider(scrapy.Spider):
                     }
                 }
                 
-                # Obtém histórico de preços dos últimos 90 dias
-                hist = stock_data.history(period="3mo")
+                # Obtém histórico de preços pelo período solicitado
+                period_str = f"{self.period_years}y"
+                hist = stock_data.history(period=period_str)
+                
                 if not hist.empty:
                     # Converte para dicionário formatado
                     history_dict = []
@@ -111,6 +122,19 @@ class FinancialSpider(scrapy.Spider):
                             'volume': int(row['Volume'])
                         })
                     financials['yfinance']['historico_precos'] = history_dict
+                    
+                    # Adiciona meta-informações sobre o período
+                    if history_dict:
+                        first_date = datetime.strptime(history_dict[0]['data'], '%Y-%m-%d')
+                        last_date = datetime.strptime(history_dict[-1]['data'], '%Y-%m-%d')
+                        days_diff = (last_date - first_date).days
+                        
+                        financials['yfinance']['periodo'] = {
+                            'inicio': history_dict[0]['data'],
+                            'fim': history_dict[-1]['data'],
+                            'dias': days_diff,
+                            'anos': round(days_diff / 365.25, 2)
+                        }
                 
             except Exception as e:
                 self.logger.error(f"Erro ao obter dados do yfinance: {str(e)}")

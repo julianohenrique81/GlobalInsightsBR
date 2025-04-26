@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GlobalInsightsBR - Configurações</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Estilos customizados -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">GlobalInsightsBR</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Início</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/config">Configurações</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#sobre">Sobre</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mt-5">
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">Configurações de Scraping</h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="configForm">
+                            <div class="mb-3">
+                                <label for="baseUrl" class="form-label">URL base para scraping financeiro</label>
+                                <input type="url" class="form-control" id="baseUrl" name="baseUrl" 
+                                       value="https://www.investsite.com.br/atualizacoes_demonstracoes_financeiras.php" required>
+                                <div class="form-text">URL usada como base para consulta de dados financeiros.</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="alternativeUrl" class="form-label">URL alternativa (opcional)</label>
+                                <input type="url" class="form-control" id="alternativeUrl" name="alternativeUrl" 
+                                       placeholder="https://exemplo.com/financas">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Opções avançadas</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="enableYFinance" checked>
+                                    <label class="form-check-label" for="enableYFinance">Usar dados do Yahoo Finance</label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="followLinks">
+                                    <label class="form-check-label" for="followLinks">Seguir links internos</label>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="cacheTime" class="form-label">Tempo de cache (horas)</label>
+                                <input type="number" class="form-control" id="cacheTime" value="24" min="1" max="72">
+                                <div class="form-text">Tempo para manter os dados em cache antes de buscar novamente.</div>
+                            </div>
+                            
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary" id="saveConfigButton">Salvar Configurações</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-dark text-white mt-5 py-4">
+        <div class="container text-center" id="sobre">
+            <p>GlobalInsightsBR - API de Web Scraping Financeira</p>
+            <p class="mb-0">Desenvolvido com Flask, Scrapy e Bootstrap</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Scripts customizados -->
+    <script src="{{ url_for('static', filename='js/config.js') }}"></script>
+</body>
+</html>
